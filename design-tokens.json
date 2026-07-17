@@ -1,0 +1,29 @@
+{
+  "_readme": "Fuente única de verdad para colores y tipografía de Argos Insights. Si algo cambia acá, hay que actualizarlo también en mobile/constants/theme.ts y en el equivalente que arme la web.",
+  "colors": {
+    "bg": "#0a0a0a",
+    "panel": "#141414",
+    "card": "#161616",
+    "line": "#262626",
+    "green": "#7fb102",
+    "greenLight": "#a3e635",
+    "greenDark": "#3d6600",
+    "white": "#ffffff",
+    "muted": "#9a9a9a",
+    "muted2": "#707070",
+    "red": "#f87171",
+    "redBg": "#2a1414",
+    "yellow": "#facc15",
+    "yellowBg": "#2a2410",
+    "greenBg": "#132a10"
+  },
+  "font": {
+    "family": "Poppins",
+    "fallback": "Arial, sans-serif"
+  },
+  "radius": {
+    "card": 14,
+    "cardLarge": 18,
+    "pill": 20
+  }
+}
