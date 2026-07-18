@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { colors } from '../constants/theme';
@@ -96,9 +95,6 @@ export default function HomeScreen({ userId, email }: { userId: string; email: s
             <View style={styles.dot} />
             <Text style={styles.brand}>ARGOS INSIGHTS</Text>
           </View>
-          <TouchableOpacity onPress={() => supabase.auth.signOut()}>
-            <Text style={styles.logout}>Salir</Text>
-          </TouchableOpacity>
         </View>
 
         <Text style={styles.greet}>Hola,</Text>
@@ -149,7 +145,6 @@ const styles = StyleSheet.create({
   topbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 },
   dot: { width: 20, height: 20, borderRadius: 10, backgroundColor: colors.green },
   brand: { color: colors.white, fontWeight: '700', fontSize: 13, letterSpacing: 0.5 },
-  logout: { color: colors.muted, fontSize: 12 },
   greet: { color: colors.muted, fontSize: 12 },
   greetName: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 18 },
   error: { color: colors.red, fontSize: 12, marginBottom: 12 },

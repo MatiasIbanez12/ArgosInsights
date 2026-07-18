@@ -55,13 +55,13 @@ export default function MainTabs({ userId, email }: { userId: string; email: str
         </Tab.Screen>
         <Tab.Screen
           name="Excel"
-          options={{ tabBarIcon: ({ focused }) => <TabIcon simbolo="☰" enfocado={focused} /> }}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon simbolo="📄" enfocado={focused} /> }}
         >
           {() => <ExcelScreen userId={userId} />}
         </Tab.Screen>
         <Tab.Screen
           name="Perfil"
-          options={{ tabBarIcon: ({ focused }) => <TabIcon simbolo="◎" enfocado={focused} /> }}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon simbolo="👤" enfocado={focused} /> }}
         >
           {() => <PerfilScreen userId={userId} email={email} />}
         </Tab.Screen>
