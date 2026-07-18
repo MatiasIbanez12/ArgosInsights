@@ -4,7 +4,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { colors } from './constants/theme';
 import { supabase } from './lib/supabase';
-import HomeScreen from './screens/HomeScreen';
+import MainTabs from './navigation/MainTabs';
 import LoginScreen from './screens/LoginScreen';
 
 export default function App() {
@@ -40,7 +40,7 @@ export default function App() {
     <>
       <StatusBar style="light" />
       {session ? (
-        <HomeScreen userId={session.user.id} email={session.user.email ?? ''} />
+        <MainTabs userId={session.user.id} email={session.user.email ?? ''} />
       ) : (
         <LoginScreen />
       )}

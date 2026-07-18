@@ -10,55 +10,21 @@ import {
 } from 'react-native';
 import { colors } from '../constants/theme';
 import { supabase } from '../lib/supabase';
-
-type Invoice = {
-  id: string;
-  cliente_nombre: string;
-  numero_factura: string | null;
-  monto: number;
-  fecha_emision: string;
-  plazo_dias: number;
-  fecha_real_pago: string | null;
-};
-
-type CashFlowMonth = {
-  saldo_inicial: number;
-  otros_ingresos: number;
-  egresos_fijos: number;
-  egresos_variables: number;
-};
-
-function formatCLP(monto: number) {
-  return '$' + Math.round(monto).toLocaleString('es-CL');
-}
-
-function formatFecha(iso: string) {
-  const [y, m, d] = iso.split('-');
-  return `${d}-${m}-${y}`;
-}
-
-function addDias(iso: string, dias: number) {
-  const fecha = new Date(iso + 'T00:00:00');
-  fecha.setDate(fecha.getDate() + dias);
-  return fecha;
-}
-
-function estadoDe(inv: Invoice): 'pendiente' | 'pagada' | 'vencida' {
-  if (inv.fecha_real_pago) return 'pagada';
-  const vence = addDias(inv.fecha_emision, inv.plazo_dias);
-  return vence < new Date() ? 'vencida' : 'pendiente';
-}
+import {
+  addDias,
+  CashFlowMonth,
+  estadoDe,
+  estadoTexto,
+  formatCLP,
+  formatFecha,
+  Invoice,
+  saldoFinal,
+} from '../lib/format';
 
 const estadoColor: Record<string, string> = {
   pendiente: colors.yellow,
   pagada: colors.greenLight,
   vencida: colors.red,
-};
-
-const estadoTexto: Record<string, string> = {
-  pendiente: 'Pendiente',
-  pagada: 'Pagada',
-  vencida: 'Vencida',
 };
 
 export default function HomeScreen({ userId, email }: { userId: string; email: string }) {
@@ -82,7 +48,7 @@ export default function HomeScreen({ userId, email }: { userId: string; email: s
           .order('fecha_emision', { ascending: false }),
         supabase
           .from('cash_flow_months')
-          .select('saldo_inicial, otros_ingresos, egresos_fijos, egresos_variables')
+          .select('*')
           .eq('client_id', userId)
           .order('mes', { ascending: false })
           .limit(1),
@@ -97,11 +63,7 @@ export default function HomeScreen({ userId, email }: { userId: string; email: s
     setNombreSaludo(profile?.full_name ?? profile?.company_name ?? null);
 
     const ultimoMes = (cashData as CashFlowMonth[] | null)?.[0];
-    if (ultimoMes) {
-      setSaldoProyectado(
-        ultimoMes.saldo_inicial + ultimoMes.otros_ingresos - ultimoMes.egresos_fijos - ultimoMes.egresos_variables
-      );
-    }
+    setSaldoProyectado(ultimoMes ? saldoFinal(ultimoMes) : null);
   }
 
   useEffect(() => {
