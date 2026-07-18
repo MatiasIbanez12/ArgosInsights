@@ -16,6 +16,7 @@ import { supabase } from '../lib/supabase';
 // (para poder probar rápido). Más adelante, lo normal va a ser que las cuentas de
 // cliente las cree un admin desde la web, y acá el cliente solo inicie sesión.
 export default function LoginScreen() {
+  const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,15 +25,27 @@ export default function LoginScreen() {
 
   async function handleSubmit() {
     setError(null);
+
+    if (modo === 'crear' && !nombre) {
+      setError('Completá tu nombre completo.');
+      return;
+    }
     if (!email || !password) {
       setError('Completá email y contraseña.');
       return;
     }
+
     setLoading(true);
     const { error: authError } =
       modo === 'entrar'
         ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
+        : await supabase.auth.signUp({
+            email,
+            password,
+            // Esto viaja como "raw_user_meta_data" — el trigger que ya está en la base
+            // (handle_new_user) lo toma de ahí y lo guarda en profiles.full_name.
+            options: { data: { full_name: nombre } },
+          });
     setLoading(false);
     if (authError) setError(authError.message);
   }
@@ -45,6 +58,17 @@ export default function LoginScreen() {
       <View style={styles.dot} />
       <Text style={styles.brand}>ARGOS INSIGHTS</Text>
       <Text style={styles.title}>{modo === 'entrar' ? 'Iniciar sesión' : 'Crear cuenta'}</Text>
+
+      {modo === 'crear' && (
+        <TextInput
+          style={styles.input}
+          placeholder="Nombre completo"
+          placeholderTextColor={colors.muted2}
+          autoCapitalize="words"
+          value={nombre}
+          onChangeText={setNombre}
+        />
+      )}
 
       <TextInput
         style={styles.input}

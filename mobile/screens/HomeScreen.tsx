@@ -64,7 +64,7 @@ const estadoTexto: Record<string, string> = {
 export default function HomeScreen({ userId, email }: { userId: string; email: string }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [companyName, setCompanyName] = useState<string | null>(null);
+  const [nombreSaludo, setNombreSaludo] = useState<string | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [saldoProyectado, setSaldoProyectado] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -74,7 +74,7 @@ export default function HomeScreen({ userId, email }: { userId: string; email: s
 
     const [{ data: profile }, { data: invoicesData, error: invError }, { data: cashData }] =
       await Promise.all([
-        supabase.from('profiles').select('company_name').eq('id', userId).single(),
+        supabase.from('profiles').select('full_name, company_name').eq('id', userId).single(),
         supabase
           .from('invoices')
           .select('*')
@@ -94,7 +94,7 @@ export default function HomeScreen({ userId, email }: { userId: string; email: s
       setInvoices((invoicesData as Invoice[]) ?? []);
     }
 
-    setCompanyName(profile?.company_name ?? null);
+    setNombreSaludo(profile?.full_name ?? profile?.company_name ?? null);
 
     const ultimoMes = (cashData as CashFlowMonth[] | null)?.[0];
     if (ultimoMes) {
@@ -140,7 +140,7 @@ export default function HomeScreen({ userId, email }: { userId: string; email: s
         </View>
 
         <Text style={styles.greet}>Hola,</Text>
-        <Text style={styles.greetName}>{companyName ?? email}</Text>
+        <Text style={styles.greetName}>{nombreSaludo ?? email}</Text>
 
         {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
 
