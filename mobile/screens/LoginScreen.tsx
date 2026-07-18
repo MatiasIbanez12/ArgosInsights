@@ -76,7 +76,7 @@ export default function LoginScreen() {
 
       <TouchableOpacity onPress={() => setModo(modo === 'entrar' ? 'crear' : 'entrar')}>
         <Text style={styles.switchText}>
-          {modo === 'entrar' ? '¿No tenés cuenta? Creá una' : '¿Ya tenés cuenta? Entrá'}
+          {modo === 'entrar' ? '¿No tienes cuenta? Regístrate' : '¿Ya tenés cuenta? Entrá'}
         </Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
