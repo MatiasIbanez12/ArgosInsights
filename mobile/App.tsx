@@ -1,16 +1,63 @@
 import { Session } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import {
+  useFonts,
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+} from '@expo-google-fonts/poppins';
 import { colors } from './constants/theme';
 import { supabase } from './lib/supabase';
 import MainTabs from './navigation/MainTabs';
 import LoginScreen from './screens/LoginScreen';
 
+// Evita que la pantalla se ponga en blanco un instante antes de que todo esté listo
+// (fuentes cargadas, sesión revisada). La sacamos a mano en IntroVideo cuando termina.
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
+const logoIntro = require('./assets/argos-logo-intro.mp4');
+
+// Pantalla de carga con el logo animado, mientras se revisa la sesión y cargan las fuentes.
+function IntroVideo() {
+  const player = useVideoPlayer(logoIntro, (p) => {
+    p.loop = true;
+    p.muted = true;
+    p.play();
+  });
+
+  useEffect(() => {
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
+
+  return (
+    <View style={styles.loading}>
+      <StatusBar style="light" />
+      <VideoView
+        player={player}
+        style={styles.video}
+        contentFit="contain"
+        nativeControls={false}
+      />
+    </View>
+  );
+}
+
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [esAdmin, setEsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [sesionLista, setSesionLista] = useState(false);
+
+  const [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
+  });
 
   useEffect(() => {
     // Al abrir la app, revisa si ya había una sesión guardada (para no pedir
@@ -18,7 +65,7 @@ export default function App() {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       if (data.session) cargarRol(data.session.user.id);
-      else setLoading(false);
+      else setSesionLista(true);
     });
 
     // Se ejecuta cada vez que el usuario entra o sale (login/logout).
@@ -34,16 +81,11 @@ export default function App() {
   async function cargarRol(userId: string) {
     const { data } = await supabase.from('profiles').select('role').eq('id', userId).single();
     setEsAdmin(data?.role === 'admin');
-    setLoading(false);
+    setSesionLista(true);
   }
 
-  if (loading) {
-    return (
-      <View style={styles.loading}>
-        <StatusBar style="light" />
-        <ActivityIndicator color={colors.green} />
-      </View>
-    );
+  if (!fontsLoaded || !sesionLista) {
+    return <IntroVideo />;
   }
 
   return (
@@ -60,4 +102,5 @@ export default function App() {
 
 const styles = StyleSheet.create({
   loading: { flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
+  video: { width: '70%', aspectRatio: 1 },
 });

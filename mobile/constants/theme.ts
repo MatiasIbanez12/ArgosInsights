@@ -19,4 +19,4 @@ export const colors = {
   greenBg: '#132a10',
 };
 
-export const fontFamily = 'System'; // TODO: cargar Poppins con expo-font más adelante
+// Poppins ya está cargada (ver App.tsx) y se aplica sola a través de components/Text.tsx.

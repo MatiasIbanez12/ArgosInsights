@@ -3,8 +3,9 @@ import * as DocumentPicker from 'expo-document-picker';
 // La API nueva (expo-file-system a secas) usa clases (File/Directory) en vez de esto.
 import * as FileSystem from 'expo-file-system/legacy';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { Text } from '../components/Text';
 import { colors } from '../constants/theme';
 import { supabase } from '../lib/supabase';
 import { parseArgosExcel } from '../lib/excelParser';
