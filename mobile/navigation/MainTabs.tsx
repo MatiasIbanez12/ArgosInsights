@@ -7,6 +7,7 @@ import CobrosScreen from '../screens/CobrosScreen';
 import CajaScreen from '../screens/CajaScreen';
 import ExcelScreen from '../screens/ExcelScreen';
 import PerfilScreen from '../screens/PerfilScreen';
+import AdminUploadScreen from '../screens/AdminUploadScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -17,13 +18,21 @@ const tema = {
   colors: { ...DarkTheme.colors, background: colors.bg, card: colors.panel, border: colors.line },
 };
 
-// Íconos de línea (outline), misma familia para las 5 pestañas.
+// Íconos de línea (outline), misma familia para todas las pestañas.
 // Lista completa de nombres disponibles: https://icons.expo.fyi (filtrar por "Feather")
 function TabIcon({ nombre, enfocado }: { nombre: keyof typeof Feather.glyphMap; enfocado: boolean }) {
   return <Feather name={nombre} size={20} color={enfocado ? colors.greenLight : colors.muted2} />;
 }
 
-export default function MainTabs({ userId, email }: { userId: string; email: string }) {
+export default function MainTabs({
+  userId,
+  email,
+  esAdmin,
+}: {
+  userId: string;
+  email: string;
+  esAdmin: boolean;
+}) {
   return (
     <NavigationContainer theme={tema}>
       <Tab.Navigator
@@ -59,6 +68,14 @@ export default function MainTabs({ userId, email }: { userId: string; email: str
         >
           {() => <ExcelScreen userId={userId} />}
         </Tab.Screen>
+        {esAdmin && (
+          <Tab.Screen
+            name="Admin"
+            options={{ tabBarIcon: ({ focused }) => <TabIcon nombre="upload" enfocado={focused} /> }}
+          >
+            {() => <AdminUploadScreen />}
+          </Tab.Screen>
+        )}
         <Tab.Screen
           name="Perfil"
           options={{ tabBarIcon: ({ focused }) => <TabIcon nombre="user" enfocado={focused} /> }}

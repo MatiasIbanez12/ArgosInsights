@@ -9,6 +9,7 @@ import LoginScreen from './screens/LoginScreen';
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
+  const [esAdmin, setEsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,16 +17,25 @@ export default function App() {
     // login cada vez que se abre la app).
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
-      setLoading(false);
+      if (data.session) cargarRol(data.session.user.id);
+      else setLoading(false);
     });
 
     // Se ejecuta cada vez que el usuario entra o sale (login/logout).
     const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
+      if (newSession) cargarRol(newSession.user.id);
+      else setEsAdmin(false);
     });
 
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  async function cargarRol(userId: string) {
+    const { data } = await supabase.from('profiles').select('role').eq('id', userId).single();
+    setEsAdmin(data?.role === 'admin');
+    setLoading(false);
+  }
 
   if (loading) {
     return (
@@ -40,7 +50,7 @@ export default function App() {
     <>
       <StatusBar style="light" />
       {session ? (
-        <MainTabs userId={session.user.id} email={session.user.email ?? ''} />
+        <MainTabs userId={session.user.id} email={session.user.email ?? ''} esAdmin={esAdmin} />
       ) : (
         <LoginScreen />
       )}

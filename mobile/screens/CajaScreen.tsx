@@ -82,7 +82,13 @@ export default function CajaScreen({ userId }: { userId: string }) {
                   <Text style={styles.mesValor}>{formatCLP(mes.saldo_inicial)}</Text>
                 </View>
                 <View style={styles.mesRow}>
-                  <Text style={styles.mesLabel}>Ingresos</Text>
+                  <Text style={styles.mesLabel}>Cobros esperados</Text>
+                  <Text style={[styles.mesValor, { color: colors.greenLight }]}>
+                    +{formatCLP(mes.cobros_esperados)}
+                  </Text>
+                </View>
+                <View style={styles.mesRow}>
+                  <Text style={styles.mesLabel}>Otros ingresos</Text>
                   <Text style={[styles.mesValor, { color: colors.greenLight }]}>
                     +{formatCLP(mes.otros_ingresos)}
                   </Text>

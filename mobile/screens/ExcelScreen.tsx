@@ -146,6 +146,7 @@ export default function ExcelScreen({ userId }: { userId: string }) {
             celdas={[
               { texto: 'Mes', ancho: 70 },
               { texto: 'Saldo inicial', ancho: 100 },
+              { texto: 'Cobros esp.', ancho: 100 },
               { texto: 'Ingresos', ancho: 100 },
               { texto: 'Egresos', ancho: 100 },
               { texto: 'Saldo final', ancho: 100 },
@@ -157,6 +158,7 @@ export default function ExcelScreen({ userId }: { userId: string }) {
               celdas={[
                 { texto: nombreMes(mes.mes), ancho: 70 },
                 { texto: formatCLP(mes.saldo_inicial), ancho: 100 },
+                { texto: formatCLP(mes.cobros_esperados), ancho: 100 },
                 { texto: formatCLP(mes.otros_ingresos), ancho: 100 },
                 { texto: formatCLP(mes.egresos_fijos + mes.egresos_variables), ancho: 100 },
                 { texto: formatCLP(saldoFinal(mes)), ancho: 100, color: colors.greenLight },

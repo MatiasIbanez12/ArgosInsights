@@ -14,6 +14,7 @@ export type CashFlowMonth = {
   id?: string;
   mes: string;
   saldo_inicial: number;
+  cobros_esperados: number;
   otros_ingresos: number;
   egresos_fijos: number;
   egresos_variables: number;
@@ -41,7 +42,9 @@ export function estadoDe(inv: Invoice): 'pendiente' | 'pagada' | 'vencida' {
 }
 
 export function saldoFinal(mes: CashFlowMonth) {
-  return mes.saldo_inicial + mes.otros_ingresos - mes.egresos_fijos - mes.egresos_variables;
+  return (
+    mes.saldo_inicial + mes.cobros_esperados + mes.otros_ingresos - mes.egresos_fijos - mes.egresos_variables
+  );
 }
 
 export const estadoColorKey = {
