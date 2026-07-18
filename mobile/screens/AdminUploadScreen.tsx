@@ -1,5 +1,7 @@
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+// En Expo SDK 54, readAsStringAsync/EncodingType se movieron a esta ruta "legacy".
+// La API nueva (expo-file-system a secas) usa clases (File/Directory) en vez de esto.
+import * as FileSystem from 'expo-file-system/legacy';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
