@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Argos Insights — Dashboard predictivo (mockup)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0a0a0a; --panel:#141414; --card:#161616; --line:#262626;
+    --green:#7fb102; --green-l:#a3e635; --green-d:#3d6600;
+    --white:#ffffff; --muted:#9a9a9a; --muted2:#707070;
+    --red:#dc2626; --red-l:#f87171; --red-bg:#2a1414;
+    --yellow:#facc15; --yellow-bg:#2a2410; --green-bg:#132a10;
+    --blue:#60a5fa;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--white);font-family:Poppins,Arial,sans-serif;}
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 28px 60px;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .dot{width:28px;height:28px;border-radius:50%;background:conic-gradient(var(--green),var(--green-d),var(--green));}
+  .brand span{font-weight:700;font-size:18px;letter-spacing:.5px;}
+  .brand small{display:block;color:var(--green);font-size:10px;letter-spacing:2px;font-weight:600;}
+  .client-select{background:var(--panel);border:1px solid var(--line);color:var(--white);border-radius:10px;padding:10px 14px;font-size:13px;font-family:inherit;}
+  h1{font-size:22px;margin:0 0 4px;font-weight:700;}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 22px;max-width:720px;line-height:1.5;}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:30px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px;}
+  .kpi.hero{border-color:var(--green-d);background:linear-gradient(160deg,#18220f,#161616);}
+  .kpi .label{color:var(--muted);font-size:12px;margin-bottom:10px;}
+  .kpi .value{font-size:26px;font-weight:700;}
+  .kpi .value.green{color:var(--green-l);}
+  .kpi .value.red{color:var(--red-l);}
+  .kpi .sublabel{color:var(--muted2);font-size:10.5px;margin-top:6px;line-height:1.4;}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 22px 8px;margin-bottom:22px;}
+  .panel.hero-panel{border-color:var(--green-d);}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .panel-head h2{font-size:15px;margin:0;font-weight:700;display:flex;align-items:center;gap:8px;}
+  .panel-head h2 .pill{background:var(--green);color:#0a0a0a;font-size:9px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:5px;}
+  .panel-head .hint{color:var(--muted2);font-size:11px;}
+  .panel-desc{color:var(--muted2);font-size:11.5px;margin:0 0 14px;line-height:1.5;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:8px 10px;border-bottom:1px solid var(--line);}
+  td{padding:12px 10px;border-bottom:1px solid var(--line);color:var(--white);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+  .badge.pend{background:var(--yellow-bg);color:var(--yellow);}
+  .badge.venc{background:var(--red-bg);color:var(--red-l);}
+  .badge.pag{background:var(--green-bg);color:var(--green-l);}
+  .amount{font-weight:600;}
+  .muted{color:var(--muted);}
+  .chart-wrap{height:300px;margin:6px 0 18px;}
+
+  /* Predicción por factura */
+  .risk-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:middle;}
+  .risk-bajo{background:var(--green-l);}
+  .risk-medio{background:var(--yellow);}
+  .risk-alto{background:var(--red-l);}
+  .estdate{font-weight:600;}
+  .estband{color:var(--muted2);font-size:11px;}
+  .contract-late{color:var(--red-l);font-size:10.5px;}
+  .probcell{min-width:150px;}
+  .prob-row{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:11px;}
+  .prob-row .lab{color:var(--muted2);width:30px;flex-shrink:0;font-variant-numeric:tabular-nums;}
+  .prob-bar{flex:1;height:7px;border-radius:4px;background:var(--line);overflow:hidden;}
+  .prob-bar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--green-d),var(--green-l));}
+  .prob-row .pct{width:34px;text-align:right;color:var(--white);font-weight:600;font-variant-numeric:tabular-nums;}
+  .signal{color:var(--muted);font-size:11px;line-height:1.45;max-width:230px;}
+  .signal b{color:var(--white);font-weight:600;}
+
+  .cycle-row{display:grid;grid-template-columns:1.3fr repeat(5,1fr) 1.9fr;gap:6px;align-items:center;padding:14px 10px;border-bottom:1px solid var(--line);font-size:12px;}
+  .cycle-row:last-child{border-bottom:none;}
+  .cycle-row.head{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;font-weight:600;}
+  .step{width:100%;height:6px;border-radius:4px;background:var(--line);position:relative;overflow:hidden;}
+  .step i{position:absolute;left:0;top:0;bottom:0;background:var(--green);border-radius:4px;}
+  .step.bottleneck{box-shadow:0 0 0 2px var(--red);}
+  .step.bottleneck i{background:var(--red-l);}
+  .cuello{font-size:10.5px;line-height:1.4;}
+  .cuello .tag{display:inline-block;padding:3px 8px;border-radius:6px;font-weight:600;}
+  .cuello .tag.ok{background:var(--green-bg);color:var(--green-l);}
+  .cuello .tag.warn{background:var(--yellow-bg);color:var(--yellow);}
+  .cuello .tag.bad{background:var(--red-bg);color:var(--red-l);}
+
+  .mock-note{margin-top:26px;padding:14px 18px;border:1px dashed var(--line);border-radius:12px;color:var(--muted2);font-size:12px;line-height:1.6;}
+  .mock-note b{color:var(--muted);}
+  .section-label{display:flex;align-items:center;gap:8px;margin:0 0 12px;}
+  .section-label .tag{background:var(--green);color:#0a0a0a;font-size:10px;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:6px;}
+  .section-label span{color:var(--muted);font-size:11px;letter-spacing:.5px;}
+  .upload-panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:20px;}
+  .upload-left{display:flex;align-items:center;gap:14px;}
+  .upload-icon{width:42px;height:42px;border-radius:10px;background:var(--green-bg);display:flex;align-items:center;justify-content:center;color:var(--green-l);font-size:18px;font-weight:700;flex-shrink:0;}
+  .upload-file{font-size:13px;font-weight:600;}
+  .upload-meta{color:var(--muted);font-size:11px;margin-top:3px;}
+  .upload-status{display:flex;align-items:center;gap:6px;color:var(--green-l);font-size:12px;font-weight:600;background:var(--green-bg);padding:6px 12px;border-radius:20px;}
+  .upload-status i{width:7px;height:7px;border-radius:50%;background:var(--green-l);display:inline-block;}
+  .upload-sheets{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .sheet-chip{background:var(--panel);border:1px solid var(--line);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:8px;}
+  .sheet-chip b{color:var(--white);}
+  .tabs{display:flex;gap:6px;margin-bottom:22px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:5px;width:fit-content;}
+  .tab-btn{border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;padding:9px 18px;border-radius:9px;cursor:pointer;}
+  .tab-btn.active{background:var(--green);color:#0a0a0a;}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+  .xls-card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:20px;overflow:hidden;}
+  .xls-title{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line);}
+  .xls-title .dotcol{width:10px;height:10px;border-radius:3px;background:var(--green);}
+  .xls-title h3{font-size:14px;margin:0;font-weight:700;}
+  .xls-title .n{margin-left:auto;color:var(--muted2);font-size:11px;}
+  .xls-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .xls-table thead th{background:#1c2118;color:var(--green-l);text-align:left;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  .xls-table thead th.num{text-align:right;}
+  .xls-table td{padding:10px 14px;border-bottom:1px solid var(--line);color:var(--white);white-space:nowrap;}
+  .xls-table td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  .xls-table tbody tr:nth-child(even){background:#131313;}
+  .xls-table tbody tr:hover{background:#1a1f16;}
+  .xls-table tfoot td{padding:11px 14px;font-weight:700;border-top:1px solid var(--line);color:var(--green-l);background:#141a10;}
+  .xls-table tfoot td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  .xls-wrap-scroll{overflow-x:auto;}
+  .legend-inline{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 4px;font-size:11px;color:var(--muted);}
+  .legend-inline .li{display:flex;align-items:center;gap:6px;}
+  .legend-inline .sw{width:14px;height:3px;border-radius:2px;display:inline-block;}
+  .legend-inline .sw.band{height:10px;border-radius:3px;background:rgba(127,177,2,0.20);border:1px solid var(--green-d);}
+  .legend-inline .sw.cob{background:var(--green);}
+  .legend-inline .sw.egr{background:var(--red);border-bottom:2px dashed var(--red);height:0;border-top:2px dashed var(--red);}
+</style>
+</head>
+<body data-palette="#7fb102,#dc2626">
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <div class="dot"></div>
+      <div>
+        <span>ARGOS INSIGHTS</span>
+        <small>PLATAFORMA DE CLIENTES · MOCKUP</small>
+      </div>
+    </div>
+    <select class="client-select">
+      <option>Proveedor: Constructora ABC</option>
+      <option>Proveedor: Ingeniería Delta</option>
+      <option>Proveedor: Servicios Andinos</option>
+    </select>
+  </div>
+
+  <div class="section-label">
+    <span class="tag">VISTA ADMIN</span>
+    <span>ASÍ CARGAS LOS DATOS DE UN PROVEEDOR</span>
+  </div>
+  <div class="upload-panel">
+    <div class="upload-left">
+      <div class="upload-icon">XLS</div>
+      <div>
+        <div class="upload-file">Argos-Insights-Orden-Financiero.xlsx</div>
+        <div class="upload-meta">Subido para Constructora ABC · hace 2 minutos</div>
+        <div class="upload-sheets">
+          <div class="sheet-chip"><b>4</b> filas · Cuentas por Cobrar</div>
+          <div class="sheet-chip"><b>6</b> meses · Flujo de Caja</div>
+          <div class="sheet-chip"><b>3</b> filas · Ciclo Documental</div>
+        </div>
+      </div>
+    </div>
+    <div class="upload-status"><i></i>Procesado · modelo actualizado</div>
+  </div>
+  <div class="mock-note" style="margin-top:0;margin-bottom:34px;">
+    Subes el mismo Excel que ya usas hoy y Argos lee sus 3 hojas. Pero además cruza cada factura con el <b>comportamiento histórico del pagador, del proveedor y del contrato</b> para estimar <b>cuándo</b> y <b>con qué probabilidad</b> se pagará. No es solo ordenar tus datos: es anticiparlos.
+  </div>
+
+  <div class="section-label">
+    <span class="tag" style="background:var(--white);">VISTA CLIENTE</span>
+    <span>LO QUE VE CONSTRUCTORA ABC AL ENTRAR</span>
+  </div>
+  <h1>Hola, Constructora ABC</h1>
+  <p class="sub">No solo cuánto te deben, sino <b>cuándo</b> te lo van a pagar y con qué probabilidad. Estimado a partir de cómo pagó históricamente cada organismo. Datos de ejemplo para mostrar el diseño.</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('resumen', this)">Resumen</button>
+    <button class="tab-btn" onclick="showTab('excel', this)">Vista Excel</button>
+  </div>
+
+  <div id="tab-resumen" class="tab-panel active">
+    <div class="kpis">
+      <div class="kpi"><div class="label">Por cobrar</div><div class="value">$8.250.000</div><div class="sublabel">3 facturas · incluye 1 vencida</div></div>
+      <div class="kpi hero"><div class="label">Cobro esperado · 30 días</div><div class="value green">$5.780.000</div><div class="sublabel">Valor esperado ponderado por probabilidad de pago</div></div>
+      <div class="kpi"><div class="label">Facturas en riesgo de atraso</div><div class="value red">2</div><div class="sublabel">Según historial del pagador</div></div>
+      <div class="kpi"><div class="label">Base del modelo</div><div class="value">142</div><div class="sublabel">pagos históricos · 3 pagadores · 18 meses</div></div>
+    </div>
+
+    <div class="panel hero-panel">
+      <div class="panel-head">
+        <h2><span class="pill">CLAVE</span> Predicción de pago por factura</h2>
+        <span class="hint">estimado hoy</span>
+      </div>
+      <p class="panel-desc">Para cada factura: la fecha de pago estimada (no la contractual) y la probabilidad de cobrar dentro de 15, 30 y 60 días, con la señal histórica que explica la estimación.</p>
+      <table>
+        <thead>
+          <tr><th>Factura · Pagador</th><th>Monto</th><th>Vence (contrato)</th><th>Pago estimado</th><th class="probcell">Prob. de cobro</th><th>Señal histórica</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="risk-dot risk-bajo"></span><b>F-1042</b> · Codelco</td>
+            <td class="amount">$4.200.000</td>
+            <td class="muted">25-07-2026</td>
+            <td><div class="estdate">08-08-2026</div><div class="estband">±5 días</div></td>
+            <td class="probcell">
+              <div class="prob-row"><span class="lab">15d</span><span class="prob-bar"><i style="width:35%"></i></span><span class="pct">35%</span></div>
+              <div class="prob-row"><span class="lab">30d</span><span class="prob-bar"><i style="width:82%"></i></span><span class="pct">82%</span></div>
+              <div class="prob-row"><span class="lab">60d</span><span class="prob-bar"><i style="width:98%"></i></span><span class="pct">98%</span></div>
+            </td>
+            <td class="signal">Codelco paga en promedio <b>14 días</b> tras el vencimiento (últimas 15 facturas), con baja variabilidad.</td>
+          </tr>
+          <tr>
+            <td><span class="risk-dot risk-medio"></span><b>F-1044</b> · Muni. Las Condes</td>
+            <td class="amount">$1.950.000</td>
+            <td class="muted">31-07-2026</td>
+            <td><div class="estdate">22-08-2026</div><div class="estband">±9 días</div></td>
+            <td class="probcell">
+              <div class="prob-row"><span class="lab">15d</span><span class="prob-bar"><i style="width:12%"></i></span><span class="pct">12%</span></div>
+              <div class="prob-row"><span class="lab">30d</span><span class="prob-bar"><i style="width:54%"></i></span><span class="pct">54%</span></div>
+              <div class="prob-row"><span class="lab">60d</span><span class="prob-bar"><i style="width:88%"></i></span><span class="pct">88%</span></div>
+            </td>
+            <td class="signal">Municipio con atraso histórico de <b>~22 días</b> y alta variabilidad entre pagos.</td>
+          </tr>
+          <tr>
+            <td><span class="risk-dot risk-alto"></span><b>F-1039</b> · MOP</td>
+            <td class="amount">$2.100.000</td>
+            <td><span class="contract-late">Venció hace 16 días</span></td>
+            <td><div class="estdate">05-08-2026</div><div class="estband">±7 días</div></td>
+            <td class="probcell">
+              <div class="prob-row"><span class="lab">15d</span><span class="prob-bar"><i style="width:48%"></i></span><span class="pct">48%</span></div>
+              <div class="prob-row"><span class="lab">30d</span><span class="prob-bar"><i style="width:61%"></i></span><span class="pct">61%</span></div>
+              <div class="prob-row"><span class="lab">60d</span><span class="prob-bar"><i style="width:90%"></i></span><span class="pct">90%</span></div>
+            </td>
+            <td class="signal">Lleva <b>34 días</b> en Tesorería, por sobre su normal (20 días). El atraso es del pagador, no del documento.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Flujo de caja proyectado</h2>
+        <span class="hint">próximos 6 meses · ponderado por probabilidad</span>
+      </div>
+      <p class="panel-desc">Los cobros no se asumen seguros: se muestran como valor esperado dentro de un rango probable (mejor y peor escenario según el historial). Así ves la caja realista, no la optimista.</p>
+      <div class="legend-inline">
+        <div class="li"><span class="sw cob"></span>Cobros esperados</div>
+        <div class="li"><span class="sw band"></span>Rango probable (optimista–pesimista)</div>
+        <div class="li"><span class="sw egr"></span>Egresos</div>
+      </div>
+      <div class="chart-wrap"><canvas id="cashChart"></canvas></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Ciclo documental · detección de cuellos de botella</h2>
+        <span class="hint">OC → HES → EDP → Factura → Pago</span>
+      </div>
+      <p class="panel-desc">No solo en qué etapa va cada trámite, sino dónde se está demorando más de lo normal — para saber a quién apurar.</p>
+      <div class="cycle-row head"><div>Pagador</div><div>OC</div><div>HES</div><div>EDP</div><div>Factura</div><div>Pago</div><div>Diagnóstico</div></div>
+      <div class="cycle-row">
+        <div>Codelco</div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step"><i style="width:60%"></i></div>
+        <div class="cuello"><span class="tag ok">En pago · 12d (normal 14d)</span></div>
+      </div>
+      <div class="cycle-row">
+        <div>MOP</div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step bottleneck"><i style="width:70%"></i></div>
+        <div class="cuello"><span class="tag bad">Cuello: Pago/Tesorería · 34d vs 20d</span></div>
+      </div>
+      <div class="cycle-row">
+        <div>Muni. Las Condes</div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step bottleneck"><i style="width:45%"></i></div>
+        <div class="step"><i style="width:0%"></i></div>
+        <div class="step"><i style="width:0%"></i></div>
+        <div class="cuello"><span class="tag warn">Cuello: aprobación EDP · 18d vs 8d</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-excel" class="tab-panel">
+    <div class="mock-note" style="margin-top:0;margin-bottom:20px;">
+      Los mismos números de tu Excel, ordenados — y con las columnas que tu planilla no tiene: <b>pago estimado</b> y <b>probabilidad de cobro</b>, calculadas por Argos.
+    </div>
+    <div class="xls-card">
+      <div class="xls-title"><span class="dotcol"></span><h3>Cuentas por cobrar · con predicción</h3><span class="n">4 filas</span></div>
+      <div class="xls-wrap-scroll">
+      <table class="xls-table">
+        <thead>
+          <tr><th>Pagador</th><th>N° Factura</th><th class="num">Monto</th><th>Vence</th><th>Pago estimado</th><th class="num">Prob. 30d</th><th class="num">Prob. 60d</th><th>Estado</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Codelco</td><td class="muted">F-1042</td><td class="num">$4.200.000</td><td class="muted">25-07-2026</td><td>08-08-2026</td><td class="num">82%</td><td class="num">98%</td><td><span class="badge pend">Pendiente</span></td></tr>
+          <tr><td>Metro de Santiago</td><td class="muted">F-1043</td><td class="num">$6.800.000</td><td class="muted">19-08-2026</td><td class="muted">Pagada 15-07</td><td class="num muted">—</td><td class="num muted">—</td><td><span class="badge pag">Pagada</span></td></tr>
+          <tr><td>Muni. Las Condes</td><td class="muted">F-1044</td><td class="num">$1.950.000</td><td class="muted">31-07-2026</td><td>22-08-2026</td><td class="num">54%</td><td class="num">88%</td><td><span class="badge pend">Pendiente</span></td></tr>
+          <tr><td>MOP</td><td class="muted">F-1039</td><td class="num">$2.100.000</td><td class="muted">02-07-2026</td><td>05-08-2026</td><td class="num">61%</td><td class="num">90%</td><td><span class="badge venc">Vencida</span></td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="2">Total por cobrar (pendientes + vencidas)</td><td class="num">$8.250.000</td><td colspan="2"></td><td class="num" colspan="3" style="text-align:left;">Cobro esperado 30d: $5.780.000</td></tr>
+        </tfoot>
+      </table>
+      </div>
+    </div>
+    <div class="xls-card">
+      <div class="xls-title"><span class="dotcol"></span><h3>Flujo de caja · cobros ponderados por probabilidad</h3><span class="n">6 meses</span></div>
+      <div class="xls-wrap-scroll">
+      <table class="xls-table">
+        <thead>
+          <tr><th>Mes</th><th class="num">Saldo inicial</th><th class="num">Cobros esperados</th><th class="num">Rango probable</th><th class="num">Egresos</th><th class="num">Saldo final</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Agosto 2026</td><td class="num">$8.000.000</td><td class="num">$5.780.000</td><td class="num muted">$3,6M–$7,9M</td><td class="num">$3.100.000</td><td class="num" style="color:var(--green-l);font-weight:600;">$10.680.000</td></tr>
+          <tr><td>Septiembre 2026</td><td class="num">$10.680.000</td><td class="num">$4.900.000</td><td class="num muted">$3,1M–$6,5M</td><td class="num">$4.200.000</td><td class="num" style="color:var(--green-l);font-weight:600;">$11.380.000</td></tr>
+          <tr><td>Octubre 2026</td><td class="num">$11.380.000</td><td class="num">$4.200.000</td><td class="num muted">$2,6M–$5,8M</td><td class="num">$5.100.000</td><td class="num" style="color:var(--green-l);font-weight:600;">$10.480.000</td></tr>
+          <tr><td>Noviembre 2026</td><td class="num">$10.480.000</td><td class="num">$5.500.000</td><td class="num muted">$3,4M–$7,2M</td><td class="num">$3.800.000</td><td class="num" style="color:var(--green-l);font-weight:600;">$12.180.000</td></tr>
+          <tr><td>Diciembre 2026</td><td class="num">$12.180.000</td><td class="num">$3.900.000</td><td class="num muted">$2,3M–$5,4M</td><td class="num">$6.900.000</td><td class="num" style="color:var(--green-l);font-weight:600;">$9.180.000</td></tr>
+          <tr><td>Enero 2027</td><td class="num">$9.180.000</td><td class="num">$6.100.000</td><td class="num muted">$3,9M–$8,0M</td><td class="num">$4.500.000</td><td class="num" style="color:var(--green-l);font-weight:600;">$10.780.000</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="5">Saldo esperado a 90 días (Oct 2026)</td><td class="num">$10.480.000</td></tr>
+        </tfoot>
+      </table>
+      </div>
+    </div>
+    <div class="xls-card">
+      <div class="xls-title"><span class="dotcol"></span><h3>Ciclo documental · tiempos vs. normal</h3><span class="n">3 filas</span></div>
+      <div class="xls-wrap-scroll">
+      <table class="xls-table">
+        <thead>
+          <tr><th>Pagador</th><th>N° OC</th><th>Etapa actual</th><th class="num">Días en etapa</th><th class="num">Normal</th><th>Diagnóstico</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Codelco</td><td class="muted">OC-3301</td><td><span class="badge pend">En pago</span></td><td class="num">12</td><td class="num muted">14</td><td style="color:var(--green-l);">Dentro de plazo</td></tr>
+          <tr><td>MOP</td><td class="muted">OC-3302</td><td><span class="badge pend">En pago</span></td><td class="num" style="color:var(--red-l);">34</td><td class="num muted">20</td><td style="color:var(--red-l);">Cuello: Tesorería (+14d)</td></tr>
+          <tr><td>Muni. Las Condes</td><td class="muted">OC-3303</td><td><span class="badge venc">Aprobación EDP</span></td><td class="num" style="color:var(--yellow);">18</td><td class="num muted">8</td><td style="color:var(--yellow);">Cuello: EDP (+10d)</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="mock-note">
+    <b>Esto es un mockup estático</b> — las fechas y probabilidades son de ejemplo para ilustrar el diseño; todavía no hay modelo real detrás. Sirve para validar que la plataforma comunique lo que Argos promete: <b>no ordenar el pasado, sino anticipar el pago</b>.
+  </div>
+</div>
+
+<script>
+  function showTab(name, btn){
+    document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  const money = function(v){ return '$' + v.toLocaleString('es-CL'); };
+  const labels = ['Ago','Sep','Oct','Nov','Dic','Ene'];
+  const cobros = [5780000,4900000,4200000,5500000,3900000,6100000];
+  const egresos = [3100000,4200000,5100000,3800000,6900000,4500000];
+  const optim = [7900000,6500000,5800000,7200000,5400000,8000000];
+  const pesim = [3600000,3100000,2600000,3400000,2300000,3900000];
+
+  new Chart(document.getElementById('cashChart'), {
+    data: {
+      labels: labels,
+      datasets: [
+        { // optimista (borde superior de la banda) — se oculta de la leyenda
+          type:'line', label:'Optimista', data:optim,
+          borderColor:'rgba(127,177,2,0.35)', borderWidth:1, pointRadius:0,
+          tension:0.35, fill:false, order:3
+        },
+        { // pesimista rellena hacia el dataset anterior (optimista) => banda
+          type:'line', label:'Rango probable', data:pesim,
+          borderColor:'rgba(127,177,2,0.35)', borderWidth:1, pointRadius:0,
+          backgroundColor:'rgba(127,177,2,0.13)', tension:0.35, fill:'-1', order:3
+        },
+        { // cobros esperados
+          type:'line', label:'Cobros esperados', data:cobros,
+          borderColor:'#7fb102', borderWidth:2.5, tension:0.35,
+          pointBackgroundColor:'#a3e635', pointBorderColor:'#a3e635', pointRadius:4,
+          fill:false, order:1
+        },
+        { // egresos — línea punteada (codificación secundaria además del color)
+          type:'line', label:'Egresos', data:egresos,
+          borderColor:'#dc2626', borderWidth:2.5, borderDash:[6,4], tension:0.35,
+          pointStyle:'rectRot', pointBackgroundColor:'#dc2626', pointBorderColor:'#dc2626', pointRadius:4,
+          fill:false, order:2
+        }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{ display:false },
+        tooltip:{
+          callbacks:{
+            label:function(c){ return c.dataset.label + ': ' + money(c.parsed.y); }
+          },
+          itemSort:function(a,b){ return b.parsed.y - a.parsed.y; }
+        }
+      },
+      scales:{
+        x:{ grid:{ color:'#1f1f1f' }, ticks:{ color:'#9a9a9a' } },
+        y:{
+          beginAtZero:true,
+          grid:{ color:'#1f1f1f' },
+          ticks:{ color:'#9a9a9a', callback:v => '$' + (v/1000000).toFixed(0) + 'M' }
+        }
+      }
+    }
+  });
+</script>
+</body>
+</html>
