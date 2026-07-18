@@ -1,6 +1,6 @@
+import { Feather } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
-import { Text } from 'react-native';
 import { colors } from '../constants/theme';
 import HomeScreen from '../screens/HomeScreen';
 import CobrosScreen from '../screens/CobrosScreen';
@@ -17,10 +17,10 @@ const tema = {
   colors: { ...DarkTheme.colors, background: colors.bg, card: colors.panel, border: colors.line },
 };
 
-function TabIcon({ simbolo, enfocado }: { simbolo: string; enfocado: boolean }) {
-  return (
-    <Text style={{ fontSize: 16, color: enfocado ? colors.greenLight : colors.muted2 }}>{simbolo}</Text>
-  );
+// Íconos de línea (outline), misma familia para las 5 pestañas.
+// Lista completa de nombres disponibles: https://icons.expo.fyi (filtrar por "Feather")
+function TabIcon({ nombre, enfocado }: { nombre: keyof typeof Feather.glyphMap; enfocado: boolean }) {
+  return <Feather name={nombre} size={20} color={enfocado ? colors.greenLight : colors.muted2} />;
 }
 
 export default function MainTabs({ userId, email }: { userId: string; email: string }) {
@@ -37,31 +37,31 @@ export default function MainTabs({ userId, email }: { userId: string; email: str
       >
         <Tab.Screen
           name="Inicio"
-          options={{ tabBarIcon: ({ focused }) => <TabIcon simbolo="⌂" enfocado={focused} /> }}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon nombre="home" enfocado={focused} /> }}
         >
           {() => <HomeScreen userId={userId} email={email} />}
         </Tab.Screen>
         <Tab.Screen
           name="Cobros"
-          options={{ tabBarIcon: ({ focused }) => <TabIcon simbolo="$" enfocado={focused} /> }}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon nombre="dollar-sign" enfocado={focused} /> }}
         >
           {() => <CobrosScreen userId={userId} />}
         </Tab.Screen>
         <Tab.Screen
           name="Caja"
-          options={{ tabBarIcon: ({ focused }) => <TabIcon simbolo="↗" enfocado={focused} /> }}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon nombre="trending-up" enfocado={focused} /> }}
         >
           {() => <CajaScreen userId={userId} />}
         </Tab.Screen>
         <Tab.Screen
           name="Excel"
-          options={{ tabBarIcon: ({ focused }) => <TabIcon simbolo="▤" enfocado={focused} /> }}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon nombre="file-text" enfocado={focused} /> }}
         >
           {() => <ExcelScreen userId={userId} />}
         </Tab.Screen>
         <Tab.Screen
           name="Perfil"
-          options={{ tabBarIcon: ({ focused }) => <TabIcon simbolo="◯" enfocado={focused} /> }}
+          options={{ tabBarIcon: ({ focused }) => <TabIcon nombre="user" enfocado={focused} /> }}
         >
           {() => <PerfilScreen userId={userId} email={email} />}
         </Tab.Screen>
